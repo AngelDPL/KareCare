@@ -1,7 +1,7 @@
 # Python
 backend/venv/
-backend/__pycache__/
-backend/*.pyc
+backend/**/__pycache__/
+backend/**/*.pyc
 backend/.env
 backend/instance/
 
@@ -9,6 +9,7 @@ backend/instance/
 frontend/node_modules/
 frontend/dist/
 frontend/.env
+frontend/.vite/
 
 # Sistema
 .DS_Store

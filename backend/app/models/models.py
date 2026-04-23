@@ -297,6 +297,9 @@ class Payments(db.Model):
     )
 
     client: Mapped["Clients"] = relationship("Clients", back_populates="payments")
+    history: Mapped[List["PaymentHistory"]] = relationship(
+        "PaymentHistory", back_populates="payment", cascade="all, delete-orphan"
+    )
 
     def to_dict(self) -> dict:
         pending = max(0, self.estimated_total - self.payments_made)
@@ -307,12 +310,11 @@ class Payments(db.Model):
             "estimated_total": str(self.estimated_total),
             "payments_made": str(self.payments_made),
             "pending_payments": str(pending),
-            "payment_date": (
-                self.payment_date.isoformat() if self.payment_date else None
-            ),
+            "payment_date": self.payment_date.isoformat() if self.payment_date else None,
             "status": self.status,
+            "history": [h.to_dict() for h in self.history] if self.history else [],
             "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
+            "updated_at": self.updated_at.isoformat()
         }
 
 
@@ -483,4 +485,31 @@ class ClientService(db.Model):
             ),
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
+        }
+
+
+class PaymentHistory(db.Model):
+    __tablename__ = "payment_history"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    payment_id: Mapped[int] = mapped_column(ForeignKey("payments.id"))
+    amount: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    payment_method: Mapped[str] = mapped_column(
+        Enum("cash", "card", name="history_payment_method_enum")
+    )
+    payment_date: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+    payment: Mapped["Payments"] = relationship("Payments", back_populates="history")
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "payment_id": self.payment_id,
+            "amount": str(self.amount),
+            "payment_method": self.payment_method,
+            "payment_date": (
+                self.payment_date.isoformat() if self.payment_date else None
+            ),
+            "created_at": self.created_at.isoformat(),
         }

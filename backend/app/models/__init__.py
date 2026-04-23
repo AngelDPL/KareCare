@@ -6,6 +6,7 @@ from .models import (
     Clients,
     Notes,
     Payments,
+    PaymentHistory,
     Appointments,
     Calendar,
     ServiceHistory,
