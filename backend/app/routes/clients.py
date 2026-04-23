@@ -183,6 +183,8 @@ def delete_client(client_id):
             return jsonify({"error": "Cliente no encontrado"}), 404
 
         client.is_active = False
+        client.email = f"{client.email}_deleted_{client.id}"
+        client.client_dni = f"{client.client_dni}_deleted_{client.id}"
         db.session.commit()
 
         return jsonify({"message": "Cliente eliminado correctamente"}), 200

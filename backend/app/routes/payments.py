@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from sqlalchemy import select
 from extensions import db
-from app.models import Payments, Clients, Businesses
+from app.models import Payments, Clients, Businesses, PaymentHistory
 from app.utils.decorators import admin_required, user_or_admin_required
 from decimal import Decimal
 from datetime import datetime
@@ -243,6 +243,44 @@ def delete_payment(payment_id):
 
 
 # ============================================================================
+# DELETE - Eliminar abono del historial
+# ============================================================================
+@payments_bp.route('/abono/<int:history_id>', methods=['DELETE'])
+@user_or_admin_required
+def delete_payment_history(history_id):
+    try:
+        history = db.session.get(PaymentHistory, history_id)
+        if not history:
+            return jsonify({"error": "Abono no encontrado"}), 404
+
+        payment = db.session.get(Payments, history.payment_id)
+        if not payment:
+            return jsonify({"error": "Pago no encontrado"}), 404
+
+        payment.payments_made = payment.payments_made - history.amount
+        payment.status = (
+            "paid" if payment.payments_made == payment.estimated_total else "pending"
+        )
+
+        db.session.delete(history)
+        db.session.commit()
+
+        return (
+            jsonify(
+                {
+                    "message": "Abono eliminado correctamente",
+                    "payment": payment.to_dict(),
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+# ============================================================================
 # POST - Registrar abono
 # ============================================================================
 @payments_bp.route("/<int:payment_id>/add-payment", methods=["POST"])
@@ -256,6 +294,16 @@ def add_payment(payment_id):
         data = request.json
         if not data or "amount" not in data:
             return jsonify({"error": "El 'amount' es requerido"}), 400
+
+        if "payment_method" not in data:
+            return jsonify({"error": "El 'payment_method' es requerido"}), 400
+
+        valid_methods = ["cash", "card"]
+        if data["payment_method"] not in valid_methods:
+            return (
+                jsonify({"error": f"Método inválido. Debe ser: {valid_methods}"}),
+                400,
+            )
 
         try:
             amount = Decimal(str(data["amount"]))
@@ -276,25 +324,30 @@ def add_payment(payment_id):
             )
 
         payment.payments_made = new_total
+        payment.payment_method = data["payment_method"]
+        payment.status = (
+            "paid" if payment.payments_made == payment.estimated_total else "pending"
+        )
 
-        if "payment_method" in data and data["payment_method"] in ["cash", "card"]:
-            payment.payment_method = data["payment_method"]
-
+        payment_date = None
         if "payment_date" in data:
             try:
-                payment.payment_date = datetime.fromisoformat(
-                    data["payment_date"]
-                ).date()
+                payment_date = datetime.fromisoformat(data["payment_date"])
             except Exception:
                 return (
                     jsonify({"error": "Formato de fecha inválido. Usa: YYYY-MM-DD"}),
                     400,
                 )
+        else:
+            payment_date = datetime.now()
 
-        payment.status = (
-            "paid" if payment.payments_made == payment.estimated_total else "pending"
+        history = PaymentHistory(
+            payment_id=payment.id,
+            amount=amount,
+            payment_method=data["payment_method"],
+            payment_date=payment_date,
         )
-
+        db.session.add(history)
         db.session.commit()
 
         return (

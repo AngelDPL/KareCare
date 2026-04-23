@@ -7,6 +7,7 @@ import Clients from "./pages/Clients"
 import Appointments from "./pages/Appointments"
 import Services from "./pages/Services"
 import Payments from "./pages/Payments"
+import Management from "./pages/Management"
 
 const PrivateRoute = ({ children }) => {
     const { user } = useApp()
@@ -26,34 +27,25 @@ function AppContent() {
             {user && <Navbar />}
             <Routes>
                 <Route path="/login" element={
-                    <PublicRoute>
-                        <Login />
-                    </PublicRoute>
+                    <PublicRoute><Login /></PublicRoute>
                 } />
                 <Route path="/dashboard" element={
-                    <PrivateRoute>
-                        <Dashboard />
-                    </PrivateRoute>
+                    <PrivateRoute><Dashboard /></PrivateRoute>
                 } />
                 <Route path="/clients" element={
-                    <PrivateRoute>
-                        <Clients />
-                    </PrivateRoute>
+                    <PrivateRoute><Clients /></PrivateRoute>
                 } />
                 <Route path="/appointments" element={
-                    <PrivateRoute>
-                        <Appointments />
-                    </PrivateRoute>
+                    <PrivateRoute><Appointments /></PrivateRoute>
                 } />
                 <Route path="/services" element={
-                    <PrivateRoute>
-                        <Services />
-                    </PrivateRoute>
+                    <PrivateRoute><Services /></PrivateRoute>
                 } />
                 <Route path="/payments" element={
-                    <PrivateRoute>
-                        <Payments />
-                    </PrivateRoute>
+                    <PrivateRoute><Payments /></PrivateRoute>
+                } />
+                <Route path="/management" element={
+                    <PrivateRoute><Management /></PrivateRoute>
                 } />
                 <Route path="*" element={<Navigate to="/login" />} />
             </Routes>
