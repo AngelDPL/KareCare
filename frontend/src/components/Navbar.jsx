@@ -18,25 +18,25 @@ const Navbar = () => {
                     KareCare
                 </Link>
 
+
                 <div className="flex items-center gap-6">
-                    <Link to="/dashboard" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                        Dashboard
-                    </Link>
+                    {isAdmin() && (
+                        <Link to="/dashboard" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                            Dashboard
+                        </Link>
+                    )}
                     <Link to="/clients" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
                         Clientes
                     </Link>
                     <Link to="/appointments" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
                         Citas
                     </Link>
-                    <Link to="/services" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                        Servicios
-                    </Link>
                     <Link to="/payments" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
                         Pagos
                     </Link>
                     {isAdmin() && (
-                        <Link to="/admin" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                            Admin
+                        <Link to="/management" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                            Gestión
                         </Link>
                     )}
                 </div>

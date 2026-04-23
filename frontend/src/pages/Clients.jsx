@@ -89,7 +89,6 @@ const Clients = () => {
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
 
-                {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-800">Clientes</h1>
@@ -103,7 +102,6 @@ const Clients = () => {
                     </button>
                 </div>
 
-                {/* Buscador */}
                 <div className="mb-6">
                     <input
                         type="text"
@@ -114,7 +112,6 @@ const Clients = () => {
                     />
                 </div>
 
-                {/* Formulario */}
                 {showForm && (
                     <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
                         <h2 className="text-lg font-semibold text-gray-700 mb-4">
@@ -190,7 +187,6 @@ const Clients = () => {
                     </div>
                 )}
 
-                {/* Tabla */}
                 <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                     <table className="w-full text-sm">
                         <thead className="bg-gray-50 border-b border-gray-200">
