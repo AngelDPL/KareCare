@@ -162,7 +162,7 @@ def create_appointment():
                 Appointments.date_time == date_time,
                 Appointments.status.in_(["pending", "confirmed"]),
             )
-        ).scalar_one_or_none()
+        ).first()
         if conflict:
             return (
                 jsonify({"error": "El usuario ya tiene una cita en ese horario"}),

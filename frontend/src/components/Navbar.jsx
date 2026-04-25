@@ -34,6 +34,9 @@ const Navbar = () => {
                     <Link to="/payments" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
                         Pagos
                     </Link>
+                    <Link to="/budgets" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                        Presupuestos
+                    </Link>
                     {isAdmin() && (
                         <Link to="/management" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
                             Gestión

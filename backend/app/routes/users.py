@@ -49,7 +49,7 @@ def login_user():
 # GET - Obtener todos los usuarios
 # ============================================================================
 @users_bp.route("", methods=["GET"])
-@admin_required
+@user_or_admin_required
 def get_all_users():
     try:
         users = (

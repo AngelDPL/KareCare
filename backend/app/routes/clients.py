@@ -96,12 +96,11 @@ def create_client():
         if existing_dni:
             return jsonify({"error": "El DNI ya existe"}), 409
 
-        # Generar client_id_number automático
         last_client = db.session.execute(
-            select(Clients)
-            .where(Clients.business_id == data["business_id"])
-            .order_by(Clients.id.desc())
-        ).scalar_one_or_none()
+            select(Clients).where(
+                Clients.business_id == data['business_id']
+            ).order_by(Clients.id.desc())
+        ).scalars().first()
 
         if last_client:
             last_number = int(last_client.client_id_number.split("-")[1])

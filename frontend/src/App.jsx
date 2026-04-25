@@ -8,6 +8,7 @@ import Appointments from "./pages/Appointments"
 import Services from "./pages/Services"
 import Payments from "./pages/Payments"
 import Management from "./pages/Management"
+import Budgets from "./pages/Budgets"
 
 const PrivateRoute = ({ children }) => {
     const { user } = useApp()
@@ -46,6 +47,9 @@ function AppContent() {
                 } />
                 <Route path="/management" element={
                     <PrivateRoute><Management /></PrivateRoute>
+                } />
+                <Route path="/budgets" element={
+                    <PrivateRoute><Budgets /></PrivateRoute>
                 } />
                 <Route path="*" element={<Navigate to="/login" />} />
             </Routes>

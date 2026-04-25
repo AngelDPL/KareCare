@@ -22,6 +22,7 @@ def create_app():
         from app.routes.calendar import calendar_bp
         from app.routes.payments import payments_bp
         from app.routes.client_services import client_services_bp
+        from app.routes.budgets import budgets_bp
 
         app.register_blueprint(admins_bp)
         app.register_blueprint(businesses_bp)
@@ -32,5 +33,6 @@ def create_app():
         app.register_blueprint(calendar_bp)
         app.register_blueprint(payments_bp)
         app.register_blueprint(client_services_bp)
+        app.register_blueprint(budgets_bp)
 
     return app

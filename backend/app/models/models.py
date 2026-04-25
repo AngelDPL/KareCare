@@ -79,6 +79,9 @@ class Businesses(db.Model):
     calendar_events: Mapped[List["Calendar"]] = relationship(
         "Calendar", back_populates="business", cascade="all, delete-orphan"
     )
+    budgets: Mapped[List["Budget"]] = relationship(
+        "Budget", back_populates="business", cascade="all, delete-orphan"
+    )
 
     def to_dict(self) -> dict:
         return {
@@ -222,6 +225,9 @@ class Clients(db.Model):
     service_instances: Mapped[List["ClientService"]] = relationship(
         "ClientService", back_populates="client", cascade="all, delete-orphan"
     )
+    budgets: Mapped[List["Budget"]] = relationship(
+        "Budget", back_populates="client", cascade="all, delete-orphan"
+    )
 
     def to_dict(self, full=False) -> dict:
         data = {
@@ -310,11 +316,13 @@ class Payments(db.Model):
             "estimated_total": str(self.estimated_total),
             "payments_made": str(self.payments_made),
             "pending_payments": str(pending),
-            "payment_date": self.payment_date.isoformat() if self.payment_date else None,
+            "payment_date": (
+                self.payment_date.isoformat() if self.payment_date else None
+            ),
             "status": self.status,
             "history": [h.to_dict() for h in self.history] if self.history else [],
             "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat()
+            "updated_at": self.updated_at.isoformat(),
         }
 
 
@@ -511,5 +519,77 @@ class PaymentHistory(db.Model):
             "payment_date": (
                 self.payment_date.isoformat() if self.payment_date else None
             ),
+            "created_at": self.created_at.isoformat(),
+        }
+
+
+class Budget(db.Model):
+    __tablename__ = "budgets"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    client_id: Mapped[int] = mapped_column(ForeignKey("clients.id"))
+    business_id: Mapped[int] = mapped_column(ForeignKey("business.id"))
+    status: Mapped[str] = mapped_column(
+        Enum("draft", "sent", "accepted", "rejected", name="budget_status"),
+        default="draft",
+    )
+    notes: Mapped[Optional[str]] = mapped_column(String(1000))
+    valid_until: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    total: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=func.now(), onupdate=func.now()
+    )
+
+    client: Mapped["Clients"] = relationship("Clients", back_populates="budgets")
+    business: Mapped["Businesses"] = relationship(
+        "Businesses", back_populates="budgets"
+    )
+    items: Mapped[List["BudgetItem"]] = relationship(
+        "BudgetItem", back_populates="budget", cascade="all, delete-orphan"
+    )
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "client_id": self.client_id,
+            "client_name": self.client.name if self.client else None,
+            "client_email": self.client.email if self.client else None,
+            "business_id": self.business_id,
+            "status": self.status,
+            "notes": self.notes,
+            "valid_until": self.valid_until.isoformat() if self.valid_until else None,
+            "total": str(self.total),
+            "items": [item.to_dict() for item in self.items] if self.items else [],
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+        }
+
+
+class BudgetItem(db.Model):
+    __tablename__ = "budget_items"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    budget_id: Mapped[int] = mapped_column(ForeignKey("budgets.id"))
+    service_id: Mapped[Optional[int]] = mapped_column(ForeignKey("service.id"))
+    description: Mapped[str] = mapped_column(String(500))
+    quantity: Mapped[int] = mapped_column(default=1)
+    unit_price: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    subtotal: Mapped[Decimal] = mapped_column(Numeric(10, 2))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+    budget: Mapped["Budget"] = relationship("Budget", back_populates="items")
+    service: Mapped[Optional["Services"]] = relationship("Services")
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "budget_id": self.budget_id,
+            "service_id": self.service_id,
+            "service_name": self.service.name if self.service else None,
+            "description": self.description,
+            "quantity": self.quantity,
+            "unit_price": str(self.unit_price),
+            "subtotal": str(self.subtotal),
             "created_at": self.created_at.isoformat(),
         }

@@ -7,3 +7,4 @@ from .appointments import appointments_bp
 from .calendar import calendar_bp
 from .payments import payments_bp
 from .client_services import client_services_bp
+from .budgets import budgets_bp

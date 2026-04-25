@@ -10,5 +10,7 @@ from .models import (
     Appointments,
     Calendar,
     ServiceHistory,
-    ClientService
+    ClientService,
+    Budget,
+    BudgetItem
 )
