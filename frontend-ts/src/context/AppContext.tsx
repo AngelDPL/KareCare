@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, use } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 import type { User, Admin } from "../types"
+import { getCurrentUser, getUserType, isAuthenticated, logout } from "../services/authService"
 
 type UserType = "admin" | "user" | null
 
@@ -18,15 +19,12 @@ interface AppProviderProps {
 
 const AppContext = createContext<AppContextType | null>(null)
 
-export const AppProvider = ({children}: AppProviderProps) => {
+export const AppProvider = ({ children }: AppProviderProps) => {
 
-    const [user, setUser] = useState<User | Admin| null>(null)
+    const [user, setUser] = useState<User | Admin | null>(null)
     const [userType, setUserType] = useState<UserType>(null)
     const [loading, setLoading] = useState<boolean>(true)
 
-    useEffect( () => {
-        setLoading(false)
-    }, [])
 
     const handleLogin = (userData: User | Admin, type: UserType): void => {
         setUser(userData)
@@ -34,11 +32,20 @@ export const AppProvider = ({children}: AppProviderProps) => {
     }
 
     const handleLogout = (): void => {
+        logout()
         setUser(null)
         setUserType(null)
     }
 
     const isAdmin = (): boolean => userType === "admin"
+
+    useEffect(() => {
+        if (isAuthenticated()) {
+            setUser(getCurrentUser())
+            setUserType(getUserType() as "admin" | "user" | null)
+        }
+        setLoading(false)
+    }, [])
 
     return (
         <AppContext.Provider value={{
@@ -57,7 +64,7 @@ export const AppProvider = ({children}: AppProviderProps) => {
 export const useApp = () => {
     const context = useContext(AppContext)
     if (!context) throw new Error("useApp must be used within AppProvider")
-    return context    
+    return context
 }
 
 export default AppContext
