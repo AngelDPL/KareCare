@@ -43,7 +43,7 @@ const Login = () => {
 
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold text-indigo-600">KareCare</h1>
-                    <p className="text-gray-500 mt-1">Gestión de clínica dental</p>
+                    <p className="text-gray-500 mt-1">Dental clinic management</p>
                 </div>
 
                 <div className="flex rounded-lg overflow-hidden border border-gray-200 mb-6">
@@ -54,7 +54,7 @@ const Login = () => {
                             : "bg-white text-gray-500 hover:bg-gray-50"
                             }`}
                     >
-                        Empleado
+                        Employee
                     </button>
                     <button
                         onClick={() => setUserType("admin")}
@@ -63,35 +63,35 @@ const Login = () => {
                             : "bg-white text-gray-500 hover:bg-gray-50"
                             }`}
                     >
-                        Administrador
+                        Administrator
                     </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Usuario
+                            User
                         </label>
                         <input
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                            placeholder="Introduce tu usuario"
+                            placeholder="Enter your username"
                             required
                         />
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Contraseña
+                            Password
                         </label>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                            placeholder="Introduce tu contraseña"
+                            placeholder="Enter your password"
                             required
                         />
                     </div>
@@ -105,7 +105,7 @@ const Login = () => {
                         disabled={loading}
                         className="w-full bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
                     >
-                        {loading ? "Iniciando sesión..." : "Iniciar sesión"}
+                        {loading ? "Logging in..." : "Login"}
                     </button>
                 </form>
             </div>

@@ -1,6 +1,64 @@
+import { Link, useNavigate } from "react-router-dom"
+import { useApp } from "../context/AppContext"
+
 const Navbar = () => {
+
+    const { user, isAdmin, handleLogout } = useApp()
+    const navigate = useNavigate()
+
+    const onLogout = (): void => {
+        handleLogout()
+        navigate("/login")
+    }
+
     return (
-        <nav>Navbar</nav>
+        <nav className="bg-white shadow-sm border-b border-gray-200">
+            <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
+
+                <Link to="/dashboard" className="text-xl font-bold text-indigo-600">
+                    KareCare
+                </Link>
+
+
+                <div className="flex items-center gap-6">
+                    {isAdmin() && (
+                        <Link to="/dashboard" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                            Dashboard
+                        </Link>
+                    )}
+                    <Link to="/clients" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                        Clientes
+                    </Link>
+                    <Link to="/appointments" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                        Citas
+                    </Link>
+                    <Link to="/payments" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                        Pagos
+                    </Link>
+                    <Link to="/budgets" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                        Presupuestos
+                    </Link>
+                    {isAdmin() && (
+                        <Link to="/management" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                            Gestión
+                        </Link>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-4">
+                    <span className="text-sm text-gray-500">
+                        {user?.username} · {isAdmin() ? "Admin" : "Empleado"}
+                    </span>
+                    <button
+                        onClick={onLogout}
+                        className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
+                    >
+                        Cerrar sesión
+                    </button>
+                </div>
+
+            </div>
+        </nav>
     )
 }
 

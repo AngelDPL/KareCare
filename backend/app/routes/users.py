@@ -16,24 +16,24 @@ def login_user():
     try:
         data = request.json
         if not data or "username" not in data or "password" not in data:
-            return jsonify({"error": "username y password son requeridos"}), 400
+            return jsonify({"error": "username and password are required"}), 400
 
         user = db.session.execute(
             select(Users).where(Users.username == data["username"])
         ).scalar_one_or_none()
 
         if not user or not user.check_password(data["password"]):
-            return jsonify({"error": "Username o contraseña incorrectos"}), 401
+            return jsonify({"error": "Incorrect username or password"}), 401
 
         if not user.is_active:
-            return jsonify({"error": "El usuario está inactivo"}), 403
+            return jsonify({"error": "The user is inactive"}), 403
 
         access_token = create_access_token(identity=str(user.id))
 
         return (
             jsonify(
                 {
-                    "message": "Login exitoso",
+                    "message": "Successful login",
                     "access_token": access_token,
                     "user": user.to_dict(),
                 }
@@ -71,7 +71,7 @@ def get_users_by_business(business_id):
     try:
         business = db.session.get(Businesses, business_id)
         if not business:
-            return jsonify({"error": "Negocio no encontrado"}), 404
+            return jsonify({"error": "Business not found"}), 404
 
         users = (
             db.session.execute(
@@ -96,7 +96,7 @@ def get_user(user_id):
     try:
         user = db.session.get(Users, user_id)
         if not user:
-            return jsonify({"error": "Usuario no encontrado"}), 404
+            return jsonify({"error": "User not found"}), 404
         return jsonify(user.to_dict()), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -111,7 +111,7 @@ def create_user():
     try:
         data = request.json
         if not data:
-            return jsonify({"error": "El body no puede estar vacío"}), 400
+            return jsonify({"error": "The body cannot be empty"}), 400
 
         required_fields = [
             "username",
@@ -123,21 +123,21 @@ def create_user():
         ]
         missing = [f for f in required_fields if f not in data]
         if missing:
-            return jsonify({"error": f"Campos requeridos faltantes: {missing}"}), 400
+            return jsonify({"error": f"Missing required fields: {missing}"}), 400
 
         existing = db.session.execute(
             select(Users).where(Users.username == data["username"])
         ).scalar_one_or_none()
         if existing:
-            return jsonify({"error": "El username ya existe"}), 409
+            return jsonify({"error": "The username already exists"}), 409
 
         business = db.session.get(Businesses, data["business_id"])
         if not business:
-            return jsonify({"error": "El negocio no existe"}), 404
+            return jsonify({"error": "The business does not exist"}), 404
 
         valid_roles = ["master", "manager", "employee"]
         if data["role"] not in valid_roles:
-            return jsonify({"error": f"Rol inválido. Debe ser: {valid_roles}"}), 400
+            return jsonify({"error": f"Invalid role. It should be: {valid_roles}"}), 400
 
         if data["role"] == "master":
             existing_master = db.session.execute(
@@ -147,7 +147,7 @@ def create_user():
             ).scalar_one_or_none()
             if existing_master:
                 return (
-                    jsonify({"error": "Este negocio ya tiene un usuario master"}),
+                    jsonify({"error": "This business already has a master user"}),
                     409,
                 )
 
@@ -178,18 +178,18 @@ def update_user(user_id):
     try:
         user = db.session.get(Users, user_id)
         if not user:
-            return jsonify({"error": "Usuario no encontrado"}), 404
+            return jsonify({"error": "User not found"}), 404
 
         data = request.json
         if not data:
-            return jsonify({"error": "El body no puede estar vacío"}), 400
+            return jsonify({"error": "The body cannot be empty"}), 400
 
         if "username" in data:
             existing = db.session.execute(
                 select(Users).where(Users.username == data["username"])
             ).scalar_one_or_none()
             if existing and existing.id != user_id:
-                return jsonify({"error": "El username ya existe"}), 409
+                return jsonify({"error": "The username already exists"}), 409
             user.username = data["username"]
 
         if "password" in data:
@@ -198,7 +198,7 @@ def update_user(user_id):
         if "role" in data:
             valid_roles = ["master", "manager", "employee"]
             if data["role"] not in valid_roles:
-                return jsonify({"error": f"Rol inválido. Debe ser: {valid_roles}"}), 400
+                return jsonify({"error": f"Invalid role. It should be: {valid_roles}"}), 400
             if data["role"] == "master" and user.role != "master":
                 existing_master = db.session.execute(
                     select(Users).where(
@@ -207,7 +207,7 @@ def update_user(user_id):
                 ).scalar_one_or_none()
                 if existing_master:
                     return (
-                        jsonify({"error": "Este negocio ya tiene un usuario master"}),
+                        jsonify({"error": "This business already has a master user"}),
                         409,
                     )
             user.role = data["role"]
@@ -238,12 +238,12 @@ def delete_user(user_id):
     try:
         user = db.session.get(Users, user_id)
         if not user:
-            return jsonify({"error": "Usuario no encontrado"}), 404
+            return jsonify({"error": "User not found"}), 404
 
         user.is_active = False
         db.session.commit()
 
-        return jsonify({"message": "Usuario eliminado correctamente"}), 200
+        return jsonify({"message": "Successfully deleted user"}), 200
 
     except Exception as e:
         db.session.rollback()
@@ -258,17 +258,17 @@ def verify_security_answer(user_id):
     try:
         user = db.session.get(Users, user_id)
         if not user:
-            return jsonify({"error": "Usuario no encontrado"}), 404
+            return jsonify({"error": "User not found"}), 404
 
         data = request.json
         if not data or "security_answer" not in data:
-            return jsonify({"error": "security_answer es requerido"}), 400
+            return jsonify({"error": "security_answer is required"}), 400
 
         if data["security_answer"].lower() == user.security_answer.lower():
             return (
                 jsonify(
                     {
-                        "message": "Respuesta correcta",
+                        "message": "Correct answer",
                         "verified": True,
                         "security_question": user.security_question,
                     }
@@ -276,7 +276,7 @@ def verify_security_answer(user_id):
                 200,
             )
 
-        return jsonify({"message": "Respuesta incorrecta", "verified": False}), 401
+        return jsonify({"message": "Wrong answer", "verified": False}), 401
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -291,21 +291,21 @@ def change_password(user_id):
     try:
         user = db.session.get(Users, user_id)
         if not user:
-            return jsonify({"error": "Usuario no encontrado"}), 404
+            return jsonify({"error": "User not found"}), 404
 
         data = request.json
         if not data or "old_password" not in data or "new_password" not in data:
-            return jsonify({"error": "old_password y new_password son requeridos"}), 400
+            return jsonify({"error": "old_password and new_password are required"}), 400
 
         if not user.check_password(data["old_password"]):
-            return jsonify({"error": "La contraseña antigua es incorrecta"}), 401
+            return jsonify({"error": "The old password is incorrect."}), 401
 
         user.set_password(data["new_password"])
         db.session.commit()
 
         return (
             jsonify(
-                {"message": "Contraseña cambiada correctamente", "user": user.to_dict()}
+                {"message": "Password changed successfully", "user": user.to_dict()}
             ),
             200,
         )
