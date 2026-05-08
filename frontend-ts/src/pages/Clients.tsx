@@ -34,11 +34,6 @@ const Clients = () => {
         }
     }
 
-    useEffect(() => {
-        fetchClients()
-    }, [])
-
-
     const resetForm = (): void => {
         setSelected(null)
         setForm({ name: "", phone: "", email: "", client_dni: "", address: "", business_id: 1 })
@@ -90,14 +85,17 @@ const Clients = () => {
         c.client_dni.toLowerCase().includes(search.toLowerCase())
     )
 
+    
+    useEffect(() => {
+        fetchClients()
+    }, [])
+
+
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center">
             <p className="text-gray-500">Loading...</p>
         </div>
     )
-
-
-
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
@@ -129,7 +127,7 @@ const Clients = () => {
                 {showForm && (
                     <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
                         <h2 className="text-lg font-semibold text-gray-700 mb-4">
-                            {selected ? "Edit client": "New client"}
+                            {selected ? "Edit client" : "New client"}
                         </h2>
                         <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
                             <div>
@@ -194,7 +192,7 @@ const Clients = () => {
                                     type="submit"
                                     className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
                                 >
-                                    {selected ? "Save changes": "Create client"}
+                                    {selected ? "Save changes" : "Create client"}
                                 </button>
                             </div>
                         </form>

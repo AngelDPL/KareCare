@@ -1,6 +1,6 @@
 import type { Calendar } from "./calendar.types"
 
-type AppointmentStatus = "pending" | "confirmed" | "cancelled" | "completed"
+export type AppointmentStatus = "pending" | "confirmed" | "cancelled" | "completed"
 
 export interface Appointment {
     id: number
