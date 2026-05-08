@@ -129,6 +129,16 @@ def create_payment():
         )
         db.session.add(payment)
         db.session.commit()
+        
+        if payments_made > 0:
+            history = PaymentHistory(
+                payment_id=payment.id,
+                amount=payments_made,
+                payment_method=data["payment_method"],
+                payment_date=payment_date or datetime.now()
+            )
+            db.session.add(history)
+            db.session.commit()
 
         return jsonify(payment.to_dict()), 201
 

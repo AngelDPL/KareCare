@@ -1,5 +1,5 @@
-type PaymentMethods = "cash" | "card"
-type PaymentStatus = "pending" | "paid"
+export type PaymentMethods = "cash" | "card"
+export type PaymentStatus = "pending" | "paid"
 
 
 
