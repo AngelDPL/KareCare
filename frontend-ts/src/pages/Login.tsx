@@ -29,9 +29,13 @@ const Login = () => {
                 data = await loginUser(username, password)
                 handleLogin(data.user, "user")
             }
-            navigate("/dashboard")
+            if (userType === "admin") {
+                navigate("/dashboard")
+            } else {
+                navigate("/appointments")
+            }
         } catch (err: any) {
-            setError(err.error || "Error al iniciar sesión")
+            setError(err.error || "Login error")
         } finally {
             setLoading(false)
         }

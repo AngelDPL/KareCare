@@ -15,34 +15,46 @@ const Navbar = () => {
         <nav className="bg-white shadow-sm border-b border-gray-200">
             <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
 
-                <Link to="/dashboard" className="text-xl font-bold text-indigo-600">
+                <Link to="/appointments" className="text-xl font-bold text-indigo-600">
                     KareCare
                 </Link>
 
-
                 <div className="flex items-center gap-6">
+
                     {isAdmin() && (
                         <Link to="/dashboard" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
                             Dashboard
                         </Link>
                     )}
+
                     <Link to="/clients" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
                         Clients
                     </Link>
+
                     <Link to="/appointments" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
                         Appointments
                     </Link>
+
                     <Link to="/payments" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
                         Payments
                     </Link>
+
                     <Link to="/budgets" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
                         Budgets
                     </Link>
+
+                    {isAdmin() && (
+                        <Link to="/services" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
+                            Services
+                        </Link>
+                    )}
+
                     {isAdmin() && (
                         <Link to="/management" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
                             Management
                         </Link>
                     )}
+
                 </div>
 
                 <div className="flex items-center gap-4">

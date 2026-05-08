@@ -21,8 +21,13 @@ const PrivateRoute = ({ children }: RouteProps) => {
 }
 
 const PublicRoute = ({ children }: RouteProps) => {
-    const { user } = useApp()
-    return !user ? children : <Navigate to="/dashboard" />
+    const { user, isAdmin } = useApp()
+    return !user ? children : <Navigate to={isAdmin() ? "/dashboard" : "/appointments"} />
+}
+
+const AdminRoute = ({ children }: RouteProps) => {
+    const { user, isAdmin } = useApp()
+    return user && isAdmin() ? children : <Navigate to="/appointments" />
 }
 
 const AppContent = () => {
@@ -37,7 +42,7 @@ const AppContent = () => {
                     <PublicRoute><Login /></PublicRoute>
                 } />
                 <Route path="/dashboard" element={
-                    <PrivateRoute><Dashboard /></PrivateRoute>
+                    <AdminRoute><Dashboard /></AdminRoute>
                 } />
                 <Route path="/clients" element={
                     <PrivateRoute><Clients /></PrivateRoute>
@@ -46,13 +51,13 @@ const AppContent = () => {
                     <PrivateRoute><Appointments /></PrivateRoute>
                 } />
                 <Route path="/services" element={
-                    <PrivateRoute><Services /></PrivateRoute>
+                    <AdminRoute><Services /></AdminRoute>
                 } />
                 <Route path="/payments" element={
                     <PrivateRoute><Payments /></PrivateRoute>
                 } />
                 <Route path="/management" element={
-                    <PrivateRoute><Management /></PrivateRoute>
+                    <AdminRoute><Management /></AdminRoute>
                 } />
                 <Route path="/budgets" element={
                     <PrivateRoute><Budgets /></PrivateRoute>
