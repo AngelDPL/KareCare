@@ -1,8 +1,11 @@
 import { Link, useNavigate } from "react-router-dom"
 import { useApp } from "../context/AppContext"
 
-const Navbar = () => {
+interface NavbarProps {
+    onMenuClick: () => void
+}
 
+const Navbar = ({ onMenuClick }: NavbarProps) => {
     const { user, isAdmin, handleLogout } = useApp()
     const navigate = useNavigate()
 
@@ -12,63 +15,28 @@ const Navbar = () => {
     }
 
     return (
-        <nav className="bg-white shadow-sm border-b border-gray-200">
-            <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
+        <nav className="h-14 bg-[#161b27] border-b border-slate-700 flex items-center px-4 lg:px-6 gap-4 sticky top-0 z-50 shrink-0">
+            
+            {/* Botón hamburguesa - solo móvil */}
+            <button onClick={onMenuClick} className="lg:hidden text-slate-400 hover:text-slate-200">
+                <i className="ti ti-menu-2 text-xl" aria-hidden="true" />
+            </button>
 
-                <Link to="/appointments" className="text-xl font-bold text-indigo-600">
-                    KareCare
-                </Link>
+            <Link to="/dashboard" className="text-base font-medium text-indigo-400 no-underline tracking-tight">
+                Kare<span className="text-slate-200">Care</span>
+            </Link>
 
-                <div className="flex items-center gap-6">
-
-                    {isAdmin() && (
-                        <Link to="/dashboard" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                            Dashboard
-                        </Link>
-                    )}
-
-                    <Link to="/clients" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                        Clients
-                    </Link>
-
-                    <Link to="/appointments" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                        Appointments
-                    </Link>
-
-                    <Link to="/payments" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                        Payments
-                    </Link>
-
-                    <Link to="/budgets" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                        Budgets
-                    </Link>
-
-                    {isAdmin() && (
-                        <Link to="/services" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                            Services
-                        </Link>
-                    )}
-
-                    {isAdmin() && (
-                        <Link to="/management" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                            Management
-                        </Link>
-                    )}
-
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-500">
-                        {user?.username} · {isAdmin() ? "Admin" : "Employee"}
-                    </span>
-                    <button
-                        onClick={onLogout}
-                        className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
-                    >
-                        Sign out
-                    </button>
-                </div>
-
+            <div className="ml-auto flex items-center gap-3">
+                <span className="hidden sm:block text-sm text-slate-400">{user?.username}</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-green-950 text-green-400 border border-green-800">
+                    {isAdmin() ? "Admin" : "Employee"}
+                </span>
+                <button
+                    onClick={onLogout}
+                    className="text-sm text-slate-400 border border-slate-700 px-3 py-1.5 rounded-md hover:bg-slate-800 hover:text-slate-200 transition-colors"
+                >
+                    Sign out
+                </button>
             </div>
         </nav>
     )

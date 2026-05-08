@@ -2,26 +2,21 @@ import { useState, useEffect } from "react"
 import { get, post, put, del } from "../services/api"
 import type { Service } from "../types"
 
-
 interface ServiceForm {
-    name: string,
-    description: string,
-    price: string,
+    name: string
+    description: string
+    price: string
     business_id: number
 }
 
 const Services = () => {
-
     const [services, setServices] = useState<Service[]>([])
     const [loading, setLoading] = useState<boolean>(true)
     const [showForm, setShowForm] = useState<boolean>(false)
     const [selected, setSelected] = useState<Service | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [form, setForm] = useState<ServiceForm>({
-        name: "",
-        description: "",
-        price: "",
-        business_id: 1
+        name: "", description: "", price: "", business_id: 1
     })
 
     const fetchServices = async () => {
@@ -53,7 +48,7 @@ const Services = () => {
             await fetchServices()
             resetForm()
         } catch (err: any) {
-            setError(err.error || "Error al guardar servicio")
+            setError(err.error || "Error saving service")
         }
     }
 
@@ -69,7 +64,7 @@ const Services = () => {
     }
 
     const handleDelete = async (id: number) => {
-        if (!confirm("¿Delete this service?")) return
+        if (!confirm("Delete this service?")) return
         try {
             await del(`/services/${id}`)
             await fetchServices()
@@ -78,125 +73,112 @@ const Services = () => {
         }
     }
 
+    const inputClass = "w-full bg-[#0f1117] border border-slate-700 text-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
 
-    useEffect(() => {
-        fetchServices()
-    }, [])
-
+    useEffect(() => { fetchServices() }, [])
 
     if (loading) return (
-        <div className="min-h-screen flex items-center justify-center">
-            <p className="text-gray-500">Loading...</p>
+        <div className="flex items-center justify-center h-64">
+            <p className="text-slate-400">Loading...</p>
         </div>
     )
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-7xl mx-auto">
-
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-800">Services</h1>
-                        <p className="text-gray-500 text-sm mt-1">{services.length} registered services</p>
-                    </div>
-                    <button
-                        onClick={() => setShowForm(true)}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
-                    >
-                        + New service
-                    </button>
+        <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h1 className="text-xl font-medium text-slate-200">Services</h1>
+                    <p className="text-sm text-slate-400 mt-1">{services.length} registered services</p>
                 </div>
+                <button
+                    onClick={() => setShowForm(true)}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+                >
+                    + New service
+                </button>
+            </div>
 
-                {showForm && (
-                    <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-                        <h2 className="text-lg font-semibold text-gray-700 mb-4">
-                            {selected ? "Edit service": "New service"}
-                        </h2>
-                        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                                <input
-                                    type="text"
-                                    value={form.name}
-                                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Price (€)</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={form.price}
-                                    onChange={(e) => setForm({ ...form, price: e.target.value })}
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                                    required
-                                />
-                            </div>
-                            <div className="col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                                <textarea
-                                    value={form.description}
-                                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                    rows={3}
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                                    required
-                                />
-                            </div>
-                            {error && <p className="col-span-2 text-red-500 text-sm">{error}</p>}
-                            <div className="col-span-2 flex gap-3 justify-end">
-                                <button
-                                    type="button"
-                                    onClick={resetForm}
-                                    className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-                                >
-                                    {selected ? "Save changes": "Create service"}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {services.length === 0 ? (
-                        <div className="col-span-3 text-center py-8 text-gray-400 bg-white rounded-2xl">
-                            No services are registered
+            {showForm && (
+                <div className="bg-[#161b27] border border-slate-700 rounded-xl p-6 mb-6">
+                    <h2 className="text-base font-medium text-slate-200 mb-4">
+                        {selected ? "Edit service" : "New service"}
+                    </h2>
+                    <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm text-slate-400 mb-1">Name</label>
+                            <input
+                                type="text"
+                                value={form.name}
+                                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                className={inputClass}
+                                required
+                            />
                         </div>
-                    ) : (
-                        services.map(service => (
-                            <div key={service.id} className="bg-white rounded-2xl shadow-sm p-6">
-                                <div className="flex items-start justify-between mb-3">
-                                    <h3 className="font-semibold text-gray-800">{service.name}</h3>
-                                    <span className="text-lg font-bold text-indigo-600">€{service.price}</span>
-                                </div>
-                                <p className="text-sm text-gray-500 mb-4">{service.description}</p>
-                                <div className="flex gap-3 justify-end">
-                                    <button
-                                        onClick={() => handleEdit(service)}
-                                        className="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(service.id)}
-                                        className="text-sm text-red-500 hover:text-red-700 font-medium"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                        ))
-                    )}
+                        <div>
+                            <label className="block text-sm text-slate-400 mb-1">Price (€)</label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={form.price}
+                                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                                className={inputClass}
+                                required
+                            />
+                        </div>
+                        <div className="col-span-2">
+                            <label className="block text-sm text-slate-400 mb-1">Description</label>
+                            <textarea
+                                value={form.description}
+                                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                rows={3}
+                                className={inputClass}
+                                required
+                            />
+                        </div>
+                        {error && <p className="col-span-2 text-red-400 text-sm">{error}</p>}
+                        <div className="col-span-2 flex gap-3 justify-end">
+                            <button type="button" onClick={resetForm} className="px-4 py-2 text-sm text-slate-400 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors">
+                                Cancel
+                            </button>
+                            <button type="submit" className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                                {selected ? "Save changes" : "Create service"}
+                            </button>
+                        </div>
+                    </form>
                 </div>
+            )}
 
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {services.length === 0 ? (
+                    <div className="col-span-3 text-center py-8 text-slate-500 bg-[#161b27] border border-slate-700 rounded-xl">
+                        No services registered
+                    </div>
+                ) : (
+                    services.map(service => (
+                        <div key={service.id} className="bg-[#161b27] border border-slate-700 rounded-xl p-6">
+                            <div className="flex items-start justify-between mb-3">
+                                <h3 className="font-medium text-slate-200">{service.name}</h3>
+                                <span className="text-lg font-semibold text-indigo-400">€{service.price}</span>
+                            </div>
+                            <p className="text-sm text-slate-400 mb-4">{service.description}</p>
+                            <div className="flex gap-3 justify-end border-t border-slate-800 pt-3">
+                                <button
+                                    onClick={() => handleEdit(service)}
+                                    className="text-sm text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(service.id)}
+                                    className="text-sm text-red-400 hover:text-red-300 font-medium transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
         </div>
     )
