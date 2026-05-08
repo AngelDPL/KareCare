@@ -27,33 +27,33 @@ const Navbar = () => {
                         </Link>
                     )}
                     <Link to="/clients" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                        Clientes
+                        Clients
                     </Link>
                     <Link to="/appointments" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                        Citas
+                        Appointments
                     </Link>
                     <Link to="/payments" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                        Pagos
+                        Payments
                     </Link>
                     <Link to="/budgets" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                        Presupuestos
+                        Budgets
                     </Link>
                     {isAdmin() && (
                         <Link to="/management" className="text-sm text-gray-600 hover:text-indigo-600 transition-colors">
-                            Gestión
+                            Management
                         </Link>
                     )}
                 </div>
 
                 <div className="flex items-center gap-4">
                     <span className="text-sm text-gray-500">
-                        {user?.username} · {isAdmin() ? "Admin" : "Empleado"}
+                        {user?.username} · {isAdmin() ? "Admin" : "Employee"}
                     </span>
                     <button
                         onClick={onLogout}
                         className="text-sm bg-indigo-600 text-white px-4 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
                     >
-                        Cerrar sesión
+                        Sign out
                     </button>
                 </div>
 
