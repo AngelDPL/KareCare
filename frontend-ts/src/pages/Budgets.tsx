@@ -40,6 +40,8 @@ const Budgets = () => {
     const [newItem, setNewItem] = useState<NewItem>({
         description: "", quantity: "1", unit_price: "", service_id: ""
     })
+    const [sendModal, setSendModal] = useState<number | null>(null)
+
 
     const fetchAll = async () => {
         try {
@@ -100,7 +102,7 @@ const Budgets = () => {
     }
 
     const handleSend = async (id: number) => {
-        if (!confirm("Send budget to client via email?")) return
+        setSendModal(null)
         setSending(id)
         try {
             await post(`/budgets/${id}/send`, {})
@@ -305,7 +307,11 @@ const Budgets = () => {
                                                         {expanded === b.id ? "▲ Items" : "▼ Items"}
                                                     </button>
                                                     {b.status === "draft" && (
-                                                        <button onClick={() => handleSend(b.id)} disabled={sending === b.id} className="text-indigo-400 hover:text-indigo-300 font-medium disabled:opacity-50 transition-colors">
+                                                        <button
+                                                            onClick={() => setSendModal(b.id)}
+                                                            disabled={sending === b.id}
+                                                            className="text-indigo-400 hover:text-indigo-300 font-medium disabled:opacity-50 transition-colors"
+                                                        >
                                                             {sending === b.id ? "Sending..." : "Send"}
                                                         </button>
                                                     )}
@@ -351,6 +357,37 @@ const Budgets = () => {
                     </table>
                 </div>
             </div>
+
+            {sendModal && (
+                <div
+                    className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+                    onClick={() => setSendModal(null)}
+                >
+                    <div
+                        className="bg-[#161b27] border border-slate-700 rounded-xl p-6 w-full max-w-sm"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-base font-medium text-slate-200 mb-2">Send budget</h3>
+                        <p className="text-sm text-slate-400 mb-6">
+                            Are you sure you want to send this budget to the client via email?
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setSendModal(null)}
+                                className="px-4 py-2 text-sm text-slate-400 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => handleSend(sendModal)}
+                                className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                            >
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
