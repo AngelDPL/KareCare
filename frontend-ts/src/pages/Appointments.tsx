@@ -12,6 +12,7 @@ interface AppointmentForm {
 }
 
 const Appointments = () => {
+
     const [appointments, setAppointments] = useState<Appointment[]>([])
     const [clients, setClients] = useState<Client[]>([])
     const [services, setServices] = useState<Service[]>([])
@@ -23,6 +24,13 @@ const Appointments = () => {
         user_id: "", client_id: "", service_id: "",
         business_id: 1, date_time: "", duration_hours: 1
     })
+    const [filterUser, setFilterUser] = useState<string>("")
+    const [filterDate, setFilterDate] = useState<string>("")
+    const [confirmModal, setConfirmModal] = useState<{
+        id: number
+        status: AppointmentStatus
+        label: string
+    } | null>(null)
 
     const fetchAll = async () => {
         try {
@@ -91,6 +99,12 @@ const Appointments = () => {
         }
         return labels[status]
     }
+
+    const filtered = appointments.filter(a => {
+        const matchUser = filterUser ? a.user_id === parseInt(filterUser) : true
+        const matchDate = filterDate ? a.date_time.startsWith(filterDate) : true
+        return matchUser && matchDate
+    })
 
     const inputClass = "w-full bg-[#0f1117] border border-slate-700 text-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
 
@@ -163,6 +177,35 @@ const Appointments = () => {
                 </div>
             )}
 
+            <div className="flex gap-4 mb-6">
+                <select
+                    value={filterUser}
+                    onChange={(e) => setFilterUser(e.target.value)}
+                    className={inputClass}
+                >
+                    <option value="">All employees</option>
+                    {users.map(u => (
+                        <option key={u.id} value={u.id}>{u.username}</option>
+                    ))}
+                </select>
+
+                <input
+                    type="date"
+                    value={filterDate}
+                    onChange={(e) => setFilterDate(e.target.value)}
+                    className={inputClass}
+                />
+
+                {(filterUser || filterDate && (
+                    <button
+                        onClick={() => { setFilterUser(""); setFilterDate("") }}
+                        className="text-sm text-slate-400 hover:text-slate-200 transition-colors"
+                    >
+                        Clear filters
+                    </button>
+                ))}
+            </div>
+
             <div className="bg-[#161b27] border border-slate-700 rounded-xl overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm min-w-[700px]">
@@ -182,7 +225,7 @@ const Appointments = () => {
                                     <td colSpan={6} className="text-center py-8 text-slate-500">No appointments registered</td>
                                 </tr>
                             ) : (
-                                appointments.map(a => (
+                                filtered.map(a => (
                                     <tr key={a.id} className="hover:bg-slate-800/50 transition-colors">
                                         <td className="px-6 py-4 font-medium text-slate-200">{a.client_name}</td>
                                         <td className="px-6 py-4 text-slate-400">{a.service_name}</td>
@@ -195,17 +238,26 @@ const Appointments = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right flex gap-3 justify-end">
                                             {a.status === "pending" && (
-                                                <button onClick={() => handleStatus(a.id, "confirmed")} className="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                                                <button
+                                                    onClick={() => setConfirmModal({ id: a.id, status: "confirmed", label: "confirmed" })}
+                                                    className="text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                                                >
                                                     Confirm
                                                 </button>
                                             )}
                                             {a.status === "confirmed" && (
-                                                <button onClick={() => handleStatus(a.id, "completed")} className="text-green-400 hover:text-green-300 font-medium transition-colors">
+                                                <button
+                                                    onClick={() => setConfirmModal({ id: a.id, status: "completed", label: "completed" })}
+                                                    className="text-green-400 hover:text-green-300 font-medium transition-colors"
+                                                >
                                                     Complete
                                                 </button>
                                             )}
                                             {["pending", "confirmed"].includes(a.status) && (
-                                                <button onClick={() => handleStatus(a.id, "cancelled")} className="text-red-400 hover:text-red-300 font-medium transition-colors">
+                                                <button
+                                                    onClick={() => setConfirmModal({ id: a.id, status: "cancelled", label: "cancelled" })}
+                                                    className="text-red-400 hover:text-red-300 font-medium transition-colors"
+                                                >
                                                     Cancel
                                                 </button>
                                             )}
@@ -220,6 +272,40 @@ const Appointments = () => {
                     </table>
                 </div>
             </div>
+
+            {confirmModal && (
+                <div
+                    className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+                    onClick={() => setConfirmModal(null)}
+                >
+                    <div
+                        className="bg-[#161b27] border border-slate-700 rounded-xl p-6 w-full max-w-sm"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-base font-medium text-slate-200 mb-2">Confirm action</h3>
+                        <p className="text-sm text-slate-400 mb-6">
+                            Are you sure you want to mark this appointment as <span className="text-slate-200 font-medium">{confirmModal.label}</span>?
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setConfirmModal(null)}
+                                className="px-4 py-2 text-sm text-slate-400 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    handleStatus(confirmModal.id, confirmModal.status)
+                                    setConfirmModal(null)
+                                }}
+                                className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                            >
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

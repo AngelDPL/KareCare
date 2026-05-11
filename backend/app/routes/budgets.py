@@ -393,7 +393,7 @@ def send_budget(budget_id):
         resend.Emails.send(
             {
                 "from": "KareCare <onboarding@resend.dev>",
-                "to": budget.client.email,
+                "to": "angeld0606@gmail.com", #budget.client.email,
                 "subject": f"Presupuesto #{budget.id:03d} - KareCare",
                 "html": f"""<!DOCTYPE html>
                             <html>
