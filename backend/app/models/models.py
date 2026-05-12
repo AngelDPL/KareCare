@@ -95,18 +95,21 @@ class Businesses(db.Model):
         }
 
 
+from typing import Optional, List
+
 class Users(db.Model):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(String(50), unique=True)
     password_hash: Mapped[str] = mapped_column(String(255))
+    email: Mapped[str] = mapped_column(String(100), unique=True)
     business_id: Mapped[int] = mapped_column(ForeignKey("business.id"))
     role: Mapped[str] = mapped_column(
         Enum("master", "manager", "employee", name="role_enum")
     )
-    security_question: Mapped[str] = mapped_column(String(500))
-    security_answer: Mapped[str] = mapped_column(String(500))
+    security_question: Mapped[Optional[str]] = mapped_column(String(500))
+    security_answer: Mapped[Optional[str]] = mapped_column(String(500))
     is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -123,15 +126,13 @@ class Users(db.Model):
         username: str,
         password: str,
         business_id: int,
-        security_question: str,
-        security_answer: str,
+        email: str,
         role: str = "employee",
     ):
         self.username = username
         self.business_id = business_id
         self.role = role
-        self.security_question = security_question
-        self.security_answer = security_answer
+        self.email = email
         self.set_password(password)
 
     def set_password(self, password: str) -> None:
@@ -144,9 +145,9 @@ class Users(db.Model):
         return {
             "id": self.id,
             "username": self.username,
+            "email": self.email,
             "role": self.role,
             "business_id": self.business_id,
-            "security_question": self.security_question,
             "is_active": self.is_active,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),

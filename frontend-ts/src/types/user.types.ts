@@ -3,6 +3,7 @@ export type UserRole = "master"| "manager" | "employee"
 export interface User {
     id: number
     username: string
+    email: string
     business_id: number
     role: UserRole
     security_question: string

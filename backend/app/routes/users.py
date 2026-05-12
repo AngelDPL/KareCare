@@ -4,6 +4,11 @@ from sqlalchemy import select
 from extensions import db
 from app.models import Users, Businesses
 from app.utils.decorators import admin_required, user_or_admin_required
+import resend
+import os
+import secrets
+import string
+from datetime import datetime
 
 users_bp = Blueprint("users", __name__, url_prefix="/api/users")
 
@@ -113,14 +118,7 @@ def create_user():
         if not data:
             return jsonify({"error": "The body cannot be empty"}), 400
 
-        required_fields = [
-            "username",
-            "password",
-            "business_id",
-            "role",
-            "security_question",
-            "security_answer",
-        ]
+        required_fields = ["username", "email", "business_id", "role"]
         missing = [f for f in required_fields if f not in data]
         if missing:
             return jsonify({"error": f"Missing required fields: {missing}"}), 400
@@ -130,6 +128,12 @@ def create_user():
         ).scalar_one_or_none()
         if existing:
             return jsonify({"error": "The username already exists"}), 409
+
+        existing_email = db.session.execute(
+            select(Users).where(Users.email == data["email"])
+        ).scalar_one_or_none()
+        if existing_email:
+            return jsonify({"error": "The email already exists"}), 409
 
         business = db.session.get(Businesses, data["business_id"])
         if not business:
@@ -151,16 +155,90 @@ def create_user():
                     409,
                 )
 
+        temp_password = "".join(
+            secrets.choice(string.ascii_letters + string.digits) for _ in range(10)
+        )
+
         user = Users(
             username=data["username"],
-            password=data["password"],
+            password=temp_password,
             business_id=data["business_id"],
+            email=data["email"],
             role=data["role"],
-            security_question=data["security_question"],
-            security_answer=data["security_answer"],
         )
         db.session.add(user)
         db.session.commit()
+
+        resend.api_key = os.getenv("RESEND_API_KEY")
+        resend.Emails.send(
+            {
+                "from": "KareCare <onboarding@resend.dev>",
+                "to": os.getenv("TEST_EMAIL", data["email"]),
+                "subject": "Welcome to KareCare — Your credentials",
+                "html": f"""<!DOCTYPE html>
+                <html>
+                <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+                <body style="margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:40px 20px;">
+                    <tr><td align="center">
+                        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+                            <tr>
+                                <td style="background-color:#1e1b4b;border-radius:12px 12px 0 0;padding:32px 40px;">
+                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td><p style="margin:0;font-size:24px;font-weight:700;color:#ffffff;">KareCare</p>
+                                            <p style="margin:4px 0 0;font-size:13px;color:#c7d2fe;">Dental Clinic</p></td>
+                                            <td align="right"><p style="margin:0;font-size:13px;color:#c7d2fe;">Welcome</p></td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="background-color:#ffffff;padding:40px;">
+                                    <p style="margin:0 0 8px;font-size:20px;font-weight:600;color:#111827;">Hello, {data["username"]}</p>
+                                    <p style="margin:0 0 32px;font-size:15px;color:#6b7280;line-height:1.6;">
+                                        Your account has been created in KareCare. Here are your credentials to access the platform.
+                                    </p>
+                                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;">
+                                        <tr style="background-color:#1e1b4b;">
+                                            <td colspan="2" style="padding:12px 16px;font-size:12px;font-weight:600;color:#ffffff;text-transform:uppercase;letter-spacing:0.5px;">Your credentials</td>
+                                        </tr>
+                                        <tr style="background-color:#f8fafc;">
+                                            <td style="padding:12px 16px;font-size:14px;color:#6b7280;width:40%;">Username</td>
+                                            <td style="padding:12px 16px;font-size:14px;color:#111827;font-weight:600;">{data["username"]}</td>
+                                        </tr>
+                                        <tr style="background-color:#ffffff;">
+                                            <td style="padding:12px 16px;font-size:14px;color:#6b7280;">Temporary password</td>
+                                            <td style="padding:12px 16px;font-size:14px;color:#111827;font-weight:600;font-family:monospace;">{temp_password}</td>
+                                        </tr>
+                                        <tr style="background-color:#f8fafc;">
+                                            <td style="padding:12px 16px;font-size:14px;color:#6b7280;">Role</td>
+                                            <td style="padding:12px 16px;font-size:14px;color:#111827;font-weight:600;">{data["role"].capitalize()}</td>
+                                        </tr>
+                                    </table>
+                                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+                                        <tr>
+                                            <td style="background-color:#eef2ff;border-left:4px solid #1e1b4b;border-radius:0 8px 8px 0;padding:16px 20px;">
+                                                <p style="margin:0 0 4px;font-size:12px;font-weight:600;color:#1e1b4b;text-transform:uppercase;letter-spacing:0.5px;">Important</p>
+                                                <p style="margin:0;font-size:14px;color:#374151;line-height:1.6;">This is a temporary password. Please change it after your first login for security reasons.</p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="background-color:#1e1b4b;border-radius:0 0 12px 12px;padding:24px 40px;text-align:center;">
+                                    <p style="margin:0;font-size:14px;font-weight:600;color:#ffffff;">KareCare · Dental Clinic</p>
+                                    <p style="margin:8px 0 0;font-size:12px;color:#a5b4fc;">Please keep your credentials safe and do not share them.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td></tr>
+                </table>
+                </body>
+                </html>""",
+            }
+        )
 
         return jsonify(user.to_dict()), 201
 
@@ -198,7 +276,10 @@ def update_user(user_id):
         if "role" in data:
             valid_roles = ["master", "manager", "employee"]
             if data["role"] not in valid_roles:
-                return jsonify({"error": f"Invalid role. It should be: {valid_roles}"}), 400
+                return (
+                    jsonify({"error": f"Invalid role. It should be: {valid_roles}"}),
+                    400,
+                )
             if data["role"] == "master" and user.role != "master":
                 existing_master = db.session.execute(
                     select(Users).where(
@@ -307,6 +388,92 @@ def change_password(user_id):
             jsonify(
                 {"message": "Password changed successfully", "user": user.to_dict()}
             ),
+            200,
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+# ============================================================================
+# POST - Reset password
+# ============================================================================
+@users_bp.route("/<int:user_id>/reset-password", methods=["POST"])
+@admin_required
+def reset_password(user_id):
+    try:
+        user = db.session.get(Users, user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        temp_password = "".join(
+            secrets.choice(string.ascii_letters + string.digits) for _ in range(10)
+        )
+        user.set_password(temp_password)
+        db.session.commit()
+
+        resend.api_key = os.getenv("RESEND_API_KEY")
+        resend.Emails.send(
+            {
+                "from": "KareCare <onboarding@resend.dev>",
+                "to": os.getenv("TEST_EMAIL", user.email),
+                "subject": "KareCare — Password reset",
+                "html": f"""<!DOCTYPE html>
+                <html>
+                <head><meta charset="utf-8"></head>
+                <body style="margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:40px 20px;">
+                    <tr><td align="center">
+                        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+                            <tr>
+                                <td style="background-color:#1e1b4b;border-radius:12px 12px 0 0;padding:32px 40px;">
+                                    <p style="margin:0;font-size:24px;font-weight:700;color:#ffffff;">KareCare</p>
+                                    <p style="margin:4px 0 0;font-size:13px;color:#c7d2fe;">Dental Clinic</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="background-color:#ffffff;padding:40px;">
+                                    <p style="margin:0 0 8px;font-size:20px;font-weight:600;color:#111827;">Hello, {user.username}</p>
+                                    <p style="margin:0 0 32px;font-size:15px;color:#6b7280;line-height:1.6;">Your password has been reset. Here is your new temporary password:</p>
+                                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;">
+                                        <tr style="background-color:#1e1b4b;">
+                                            <td colspan="2" style="padding:12px 16px;font-size:12px;font-weight:600;color:#ffffff;text-transform:uppercase;letter-spacing:0.5px;">New credentials</td>
+                                        </tr>
+                                        <tr style="background-color:#f8fafc;">
+                                            <td style="padding:12px 16px;font-size:14px;color:#6b7280;width:40%;">Username</td>
+                                            <td style="padding:12px 16px;font-size:14px;color:#111827;font-weight:600;">{user.username}</td>
+                                        </tr>
+                                        <tr style="background-color:#ffffff;">
+                                            <td style="padding:12px 16px;font-size:14px;color:#6b7280;">New password</td>
+                                            <td style="padding:12px 16px;font-size:14px;color:#111827;font-weight:600;font-family:monospace;">{temp_password}</td>
+                                        </tr>
+                                    </table>
+                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="background-color:#eef2ff;border-left:4px solid #1e1b4b;border-radius:0 8px 8px 0;padding:16px 20px;">
+                                                <p style="margin:0;font-size:14px;color:#374151;line-height:1.6;">Please change this password after your next login.</p>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="background-color:#1e1b4b;border-radius:0 0 12px 12px;padding:24px 40px;text-align:center;">
+                                    <p style="margin:0;font-size:14px;font-weight:600;color:#ffffff;">KareCare · Dental Clinic</p>
+                                    <p style="margin:8px 0 0;font-size:12px;color:#a5b4fc;">Keep your credentials safe.</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td></tr>
+                </table>
+                </body>
+                </html>""",
+            }
+        )
+
+        return (
+            jsonify({"message": f"Password reset successfully for {user.username}"}),
             200,
         )
 

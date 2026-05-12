@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { get, post, put } from "../services/api"
 import type { Appointment, Client, Service, User, AppointmentStatus } from "../types"
+import Select from "../components/Select"
 
 interface AppointmentForm {
     user_id: string
@@ -134,27 +135,33 @@ const Appointments = () => {
             {showForm && (
                 <div className="bg-[#161b27] border border-slate-700 rounded-xl p-6 mb-6">
                     <h2 className="text-base font-medium text-slate-200 mb-4">New appointment</h2>
-                    <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm text-slate-400 mb-1">Client</label>
-                            <select value={form.client_id} onChange={(e) => setForm({ ...form, client_id: e.target.value })} className={inputClass} required>
-                                <option value="">Select client</option>
-                                {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                            </select>
+                            <Select
+                                value={form.client_id}
+                                onChange={(value) => setForm({ ...form, client_id: value })}
+                                options={clients.map(c => ({ value: String(c.id), label: c.name }))}
+                                placeholder="Select client"
+                            />
                         </div>
                         <div>
                             <label className="block text-sm text-slate-400 mb-1">Service</label>
-                            <select value={form.service_id} onChange={(e) => setForm({ ...form, service_id: e.target.value })} className={inputClass} required>
-                                <option value="">Select service</option>
-                                {services.map(s => <option key={s.id} value={s.id}>{s.name} — €{s.price}</option>)}
-                            </select>
+                            <Select
+                                value={form.service_id}
+                                onChange={(value) => setForm({ ...form, service_id: value })}
+                                options={services.map(s => ({ value: String(s.id), label: `${s.name} — €${s.price}` }))}
+                                placeholder="Select service"
+                            />
                         </div>
                         <div>
                             <label className="block text-sm text-slate-400 mb-1">Employee</label>
-                            <select value={form.user_id} onChange={(e) => setForm({ ...form, user_id: e.target.value })} className={inputClass} required>
-                                <option value="">Select employee</option>
-                                {users.map(u => <option key={u.id} value={u.id}>{u.username} — {u.role}</option>)}
-                            </select>
+                            <Select
+                                value={form.user_id}
+                                onChange={(value) => setForm({ ...form, user_id: value })}
+                                options={users.map(u => ({ value: String(u.id), label: `${u.username} — ${u.role}` }))}
+                                placeholder="Select employee"
+                            />
                         </div>
                         <div>
                             <label className="block text-sm text-slate-400 mb-1">Date and time</label>
@@ -177,33 +184,31 @@ const Appointments = () => {
                 </div>
             )}
 
-            <div className="flex gap-4 mb-6">
-                <select
-                    value={filterUser}
-                    onChange={(e) => setFilterUser(e.target.value)}
-                    className={inputClass}
-                >
-                    <option value="">All employees</option>
-                    {users.map(u => (
-                        <option key={u.id} value={u.id}>{u.username}</option>
+            <div className="flex gap-4 mb-6 p-5">
+                <div className="w-64 shrink-0 ">
+                    <Select
+                        value={form.client_id}
+                        onChange={(value) => setForm({ ...form, client_id: value })}
+                        options={clients.map(c => ({ value: String(c.id), label: c.name }))}
+                        placeholder="Select client"
+                    />
+
+                    <input
+                        type="date"
+                        value={filterDate}
+                        onChange={(e) => setFilterDate(e.target.value)}
+                        className={inputClass}
+                    />
+
+                    {(filterUser || filterDate && (
+                        <button
+                            onClick={() => { setFilterUser(""); setFilterDate("") }}
+                            className="p-2 text-md text-slate-400 hover:text-slate-200 transition-colors"
+                        >
+                            Clear filters
+                        </button>
                     ))}
-                </select>
-
-                <input
-                    type="date"
-                    value={filterDate}
-                    onChange={(e) => setFilterDate(e.target.value)}
-                    className={inputClass}
-                />
-
-                {(filterUser || filterDate && (
-                    <button
-                        onClick={() => { setFilterUser(""); setFilterDate("") }}
-                        className="text-sm text-slate-400 hover:text-slate-200 transition-colors"
-                    >
-                        Clear filters
-                    </button>
-                ))}
+                </div>
             </div>
 
             <div className="bg-[#161b27] border border-slate-700 rounded-xl overflow-hidden">

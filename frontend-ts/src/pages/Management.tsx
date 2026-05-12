@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react"
 import { get, post, put, del } from "../services/api"
 import type { Business, User, UserRole } from "../types"
+import Select from "../components/Select"
 
 interface ManagementForm {
     username: string
     password: string
+    email: string
     role: UserRole
     business_id: number
-    security_question: string
-    security_answer: string
 }
 
 interface BusinessForm {
@@ -18,6 +18,8 @@ interface BusinessForm {
 }
 
 const Management = () => {
+
+    const [resetSuccess, setResetSuccess] = useState<string | null>(null)
     const [tab, setTab] = useState<"employees" | "businesses">("employees")
     const [users, setUsers] = useState<User[]>([])
     const [businesses, setBusinesses] = useState<Business[]>([])
@@ -26,8 +28,7 @@ const Management = () => {
     const [selected, setSelected] = useState<User | Business | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [userForm, setUserForm] = useState<ManagementForm>({
-        username: "", password: "", role: "employee" as UserRole,
-        business_id: 1, security_question: "", security_answer: ""
+        username: "", password: "", email: "", role: "employee" as UserRole, business_id: 1
     })
     const [businessForm, setBusinessForm] = useState<BusinessForm>({
         business_name: "", business_RIF: "", business_CP: ""
@@ -74,8 +75,11 @@ const Management = () => {
     const handleEditUser = (user: User) => {
         setSelected(user)
         setUserForm({
-            username: user.username, password: "", role: user.role,
-            business_id: user.business_id, security_question: user.security_question, security_answer: ""
+            username: user.username,
+            password: "",
+            email: user.email,
+            role: user.role,
+            business_id: user.business_id,
         })
         setShowForm(true)
     }
@@ -116,11 +120,21 @@ const Management = () => {
         setShowForm(true)
     }
 
+    const handleResetPassword = async (id: number) => {
+        try {
+            await post(`/users/${id}/reset-password`, {})
+            setResetSuccess("Password reset — credentials sent by email")
+            setTimeout(() => setResetSuccess(null), 4000)
+        } catch (err: any) {
+            setError(err.error || "Error resetting password")
+        }
+    }
+
     const resetForms = () => {
         setSelected(null)
         setShowForm(false)
         setError(null)
-        setUserForm({ username: "", password: "", role: "employee" as UserRole, business_id: 1, security_question: "", security_answer: "" })
+        setUserForm({ username: "", password: "", email: "", role: "employee" as UserRole, business_id: 1 })
         setBusinessForm({ business_name: "", business_RIF: "", business_CP: "" })
     }
 
@@ -196,25 +210,29 @@ const Management = () => {
                                 </div>
                                 <div>
                                     <label className="block text-sm text-slate-400 mb-1">Role</label>
-                                    <select value={userForm.role} onChange={(e) => setUserForm({ ...userForm, role: e.target.value as UserRole })} className={inputClass}>
-                                        <option value="employee">Employee</option>
-                                        <option value="manager">Manager</option>
-                                        <option value="master">Master</option>
-                                    </select>
+                                    <Select
+                                        value={userForm.role}
+                                        onChange={(value) => setUserForm({ ...userForm, role: value as UserRole })}
+                                        options={[
+                                            { value: "employee", label: "Employee" },
+                                            { value: "manager", label: "Manager" },
+                                            { value: "master", label: "Master" }
+                                        ]}
+                                        placeholder="Select role"
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-sm text-slate-400 mb-1">Business</label>
-                                    <select value={userForm.business_id} onChange={(e) => setUserForm({ ...userForm, business_id: parseInt(e.target.value) })} className={inputClass}>
-                                        {businesses.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                                    </select>
+                                    <Select
+                                        value={String(userForm.business_id)}
+                                        onChange={(value) => setUserForm({ ...userForm, business_id: parseInt(value) })}
+                                        options={businesses.map(b => ({ value: String(b.id), label: b.name }))}
+                                        placeholder="Select business"
+                                    />
                                 </div>
                                 <div>
-                                    <label className="block text-sm text-slate-400 mb-1">Security question</label>
-                                    <input type="text" value={userForm.security_question} onChange={(e) => setUserForm({ ...userForm, security_question: e.target.value })} className={inputClass} required={!selected} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm text-slate-400 mb-1">Security answer</label>
-                                    <input type="text" value={userForm.security_answer} onChange={(e) => setUserForm({ ...userForm, security_answer: e.target.value })} className={inputClass} required={!selected} />
+                                    <label className="block text-sm text-slate-400 mb-1">Email</label>
+                                    <input type="email" value={userForm.email} onChange={(e) => setUserForm({ ...userForm, email: e.target.value })} className={inputClass} required={!selected} />
                                 </div>
                                 {error && <p className="col-span-2 text-red-400 text-sm">{error}</p>}
                                 <div className="col-span-2 flex gap-3 justify-end">
@@ -227,6 +245,12 @@ const Management = () => {
                         </div>
                     )}
 
+                    {resetSuccess && (
+                        <div className="bg-green-900/30 border border-green-800 text-green-300 rounded-lg px-4 py-3 text-sm mb-4">
+                            {resetSuccess}
+                        </div>
+                    )}
+                    
                     <div className="bg-[#161b27] border border-slate-700 rounded-xl overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm min-w-[550px]">
@@ -257,6 +281,7 @@ const Management = () => {
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <button onClick={() => handleEditUser(user)} className="text-indigo-400 hover:text-indigo-300 font-medium mr-4 transition-colors">Edit</button>
+                                                    <button onClick={() => handleResetPassword(user.id)} className="text-amber-400 hover:text-amber-300 font-medium mr-4 transition-colors">Reset</button>
                                                     <button onClick={() => handleDeleteUser(user.id)} className="text-red-400 hover:text-red-300 font-medium transition-colors">Delete</button>
                                                 </td>
                                             </tr>
