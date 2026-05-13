@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { put } from "../services/api"
-import { getCurrentUser } from "../services/authService"
 import { useApp } from "../context/AppContext"
 
 const ChangePassword = () => {
