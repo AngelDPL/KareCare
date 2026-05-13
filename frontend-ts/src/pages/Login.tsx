@@ -2,6 +2,9 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useApp } from "../context/AppContext"
 import { loginAdmin, loginUser } from "../services/authService"
+import { useSearchParams } from "react-router-dom"
+import { useEffect } from "react"
+
 
 const Login = () => {
     const [username, setUsername] = useState<string>("")
@@ -9,9 +12,17 @@ const Login = () => {
     const [userType, setUserType] = useState<"user" | "admin">("user")
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState<boolean>(false)
+    const [searchParams] = useSearchParams()
+    const { handleLogout } = useApp()
 
     const { handleLogin } = useApp()
     const navigate = useNavigate()
+
+    useEffect(() => {
+        if (searchParams.get("new_user") === "true") {
+            handleLogout()
+        }
+    }, [])
 
     const handleSubmit = async (e: React.SyntheticEvent) => {
         e.preventDefault()
@@ -25,11 +36,21 @@ const Login = () => {
             } else {
                 data = await loginUser(username, password)
                 handleLogin(data.user, "user")
+
+                if (data.user.first_login === true) {
+                    navigate("/change-password")
+                } else {
+                    navigate("/appointments")
+                }
             }
             if (userType === "admin") {
                 navigate("/dashboard")
             } else {
-                navigate("/appointments")
+                if (data.user.first_login) {
+                    navigate("/change-password")
+                } else {
+                    navigate("/appointments")
+                }
             }
         } catch (err: any) {
             setError(err.error || "Login error")

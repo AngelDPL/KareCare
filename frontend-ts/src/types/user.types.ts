@@ -6,7 +6,7 @@ export interface User {
     email: string
     business_id: number
     role: UserRole
-    security_question: string
+    first_login: boolean
     is_active: boolean
     created_at: string
     updated_at: string

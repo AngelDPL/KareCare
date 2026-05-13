@@ -108,8 +108,7 @@ class Users(db.Model):
     role: Mapped[str] = mapped_column(
         Enum("master", "manager", "employee", name="role_enum")
     )
-    security_question: Mapped[Optional[str]] = mapped_column(String(500))
-    security_answer: Mapped[Optional[str]] = mapped_column(String(500))
+    first_login: Mapped[bool] = mapped_column(default=True)
     is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -149,6 +148,7 @@ class Users(db.Model):
             "role": self.role,
             "business_id": self.business_id,
             "is_active": self.is_active,
+            "first_login": self.first_login,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }

@@ -5,7 +5,7 @@ import Select from "../components/Select"
 
 interface ManagementForm {
     username: string
-    password: string
+    password?: string
     email: string
     role: UserRole
     business_id: number
@@ -20,6 +20,7 @@ interface BusinessForm {
 const Management = () => {
 
     const [resetSuccess, setResetSuccess] = useState<string | null>(null)
+    const [resetModal, setResetModal] = useState<number | null>(null)
     const [tab, setTab] = useState<"employees" | "businesses">("employees")
     const [users, setUsers] = useState<User[]>([])
     const [businesses, setBusinesses] = useState<Business[]>([])
@@ -28,7 +29,7 @@ const Management = () => {
     const [selected, setSelected] = useState<User | Business | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [userForm, setUserForm] = useState<ManagementForm>({
-        username: "", password: "", email: "", role: "employee" as UserRole, business_id: 1
+        username: "", email: "", role: "employee" as UserRole, business_id: 1
     })
     const [businessForm, setBusinessForm] = useState<BusinessForm>({
         business_name: "", business_RIF: "", business_CP: ""
@@ -76,7 +77,6 @@ const Management = () => {
         setSelected(user)
         setUserForm({
             username: user.username,
-            password: "",
             email: user.email,
             role: user.role,
             business_id: user.business_id,
@@ -134,7 +134,7 @@ const Management = () => {
         setSelected(null)
         setShowForm(false)
         setError(null)
-        setUserForm({ username: "", password: "", email: "", role: "employee" as UserRole, business_id: 1 })
+        setUserForm({ username: "", email: "", role: "employee" as UserRole, business_id: 1 })
         setBusinessForm({ business_name: "", business_RIF: "", business_CP: "" })
     }
 
@@ -205,9 +205,15 @@ const Management = () => {
                                     <input type="text" value={userForm.username} onChange={(e) => setUserForm({ ...userForm, username: e.target.value })} className={inputClass} required />
                                 </div>
                                 <div>
-                                    <label className="block text-sm text-slate-400 mb-1">{selected ? "New password (optional)" : "Password"}</label>
-                                    <input type="password" value={userForm.password} onChange={(e) => setUserForm({ ...userForm, password: e.target.value })} className={inputClass} required={!selected} />
+                                    <label className="block text-sm text-slate-400 mb-1">Email</label>
+                                    <input type="email" value={userForm.email} onChange={(e) => setUserForm({ ...userForm, email: e.target.value })} className={inputClass} required={!selected} />
                                 </div>
+                                {selected && (
+                                    <div>
+                                        <label className="block text-sm text-slate-400 mb-1">New password (optional)</label>
+                                        <input type="password" value={userForm.password || ""} onChange={(e) => setUserForm({ ...userForm, password: e.target.value })} className={inputClass} />
+                                    </div>
+                                )}
                                 <div>
                                     <label className="block text-sm text-slate-400 mb-1">Role</label>
                                     <Select
@@ -230,10 +236,6 @@ const Management = () => {
                                         placeholder="Select business"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm text-slate-400 mb-1">Email</label>
-                                    <input type="email" value={userForm.email} onChange={(e) => setUserForm({ ...userForm, email: e.target.value })} className={inputClass} required={!selected} />
-                                </div>
                                 {error && <p className="col-span-2 text-red-400 text-sm">{error}</p>}
                                 <div className="col-span-2 flex gap-3 justify-end">
                                     <button type="button" onClick={resetForms} className="px-4 py-2 text-sm text-slate-400 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors">Cancel</button>
@@ -250,7 +252,7 @@ const Management = () => {
                             {resetSuccess}
                         </div>
                     )}
-                    
+
                     <div className="bg-[#161b27] border border-slate-700 rounded-xl overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm min-w-[550px]">
@@ -281,7 +283,7 @@ const Management = () => {
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <button onClick={() => handleEditUser(user)} className="text-indigo-400 hover:text-indigo-300 font-medium mr-4 transition-colors">Edit</button>
-                                                    <button onClick={() => handleResetPassword(user.id)} className="text-amber-400 hover:text-amber-300 font-medium mr-4 transition-colors">Reset</button>
+                                                    <button onClick={() => setResetModal(user.id)} className="text-amber-400 hover:text-amber-300 font-medium mr-4 transition-colors">Reset</button>
                                                     <button onClick={() => handleDeleteUser(user.id)} className="text-red-400 hover:text-red-300 font-medium transition-colors">Delete</button>
                                                 </td>
                                             </tr>
@@ -366,8 +368,38 @@ const Management = () => {
                     </div>
                 </>
             )}
-        </div>
 
+            {resetModal && (
+                <div
+                    className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+                    onClick={() => setResetModal(null)}
+                >
+                    <div
+                        className="bg-[#161b27] border border-slate-700 rounded-xl p-6 w-full max-w-sm"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 className="text-base font-medium text-slate-200 mb-2">Reset password</h3>
+                        <p className="text-sm text-slate-400 mb-6">
+                            A new temporary password will be generated and sent to the employee's email.
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setResetModal(null)}
+                                className="px-4 py-2 text-sm text-slate-400 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => { handleResetPassword(resetModal); setResetModal(null) }}
+                                className="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
+                            >
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
     )
 }
 

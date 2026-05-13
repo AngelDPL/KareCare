@@ -14,6 +14,7 @@ export const loginUser = async (username: string, password: string): Promise<any
     localStorage.setItem("token", data.access_token)
     localStorage.setItem("user", JSON.stringify(data.user))
     localStorage.setItem("userType", "user")
+    localStorage.setItem("first_login", String(data.user.first_login))
     return data
 }
 

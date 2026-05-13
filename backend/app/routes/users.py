@@ -224,6 +224,16 @@ def create_user():
                                             </td>
                                         </tr>
                                     </table>
+                                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;">
+                                        <tr>
+                                            <td align="center">
+                                                <a href="http://localhost:5173/login?new_user=true"
+                                                style="background-color:#1e1b4b;color:#ffffff;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block;">
+                                                    Go to login
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </td>
                             </tr>
                             <tr>
@@ -382,6 +392,7 @@ def change_password(user_id):
             return jsonify({"error": "The old password is incorrect."}), 401
 
         user.set_password(data["new_password"])
+        user.first_login = False
         db.session.commit()
 
         return (

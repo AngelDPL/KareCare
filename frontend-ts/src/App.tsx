@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from "react-router-dom"
 import { useApp } from "./context/AppContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -9,6 +9,7 @@ import Payments from "./pages/Payments";
 import Management from "./pages/Management";
 import Budgets from "./pages/Budgets";
 import Layout from "./components/Layout";
+import ChangePassword from "./pages/ChangePassword"
 
 
 interface RouteProps {
@@ -16,18 +17,38 @@ interface RouteProps {
 }
 
 const PrivateLayout = ({ children }: RouteProps) => {
-    const { user } = useApp()
+    const { user, loading } = useApp()
+    if (loading) return null
     return user ? <Layout>{children}</Layout> : <Navigate to="/login" />
 }
 
-const PublicRoute = ({ children }: RouteProps) => {
-    const { user, isAdmin } = useApp()
-    return !user ? children : <Navigate to={isAdmin() ? "/dashboard" : "/appointments"} />
+const AdminLayout = ({ children }: RouteProps) => {
+    const { user, isAdmin, loading } = useApp()
+    if (loading) return null
+    return user && isAdmin() ? <Layout>{children}</Layout> : <Navigate to="/appointments" />
 }
 
-const AdminLayout = ({ children }: RouteProps) => {
-    const { user, isAdmin } = useApp()
-    return user && isAdmin() ? <Layout>{children}</Layout> : <Navigate to="/appointments" />
+const PublicRoute = ({ children }: RouteProps) => {
+    const { user, isAdmin, handleLogout, loading } = useApp()
+    const [searchParams] = useSearchParams()
+    if (loading) return null
+
+    if (searchParams.get("new_user") === "true" && user) {
+        handleLogout()
+        return <>{children}</>
+    }
+
+    if (!user) return <>{children}</>
+
+    if ((user as any).first_login) return <>{children}</>
+
+    return <Navigate to={isAdmin() ? "/dashboard" : "/appointments"} />
+}
+
+const PrivateNoLayout = ({ children }: RouteProps) => {
+    const { user, loading } = useApp()
+    if (loading) return null
+    return user ? <>{children}</> : <Navigate to="/login" />
 }
 
 const AppContent = () => {
@@ -58,6 +79,9 @@ const AppContent = () => {
                 } />
                 <Route path="/budgets" element={
                     <PrivateLayout><Budgets /></PrivateLayout>
+                } />
+                <Route path="/change-password" element={
+                    <PrivateNoLayout><ChangePassword /></PrivateNoLayout>
                 } />
                 <Route path="*" element={<Navigate to="/login" />} />
             </Routes>
