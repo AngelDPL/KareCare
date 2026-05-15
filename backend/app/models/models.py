@@ -58,6 +58,7 @@ class Businesses(db.Model):
     business_name: Mapped[str] = mapped_column(String(100))
     business_RIF: Mapped[str] = mapped_column(String(15), unique=True)
     business_CP: Mapped[str] = mapped_column(String(10))
+    google_token: Mapped[Optional[str]] = mapped_column(String(2000))
     is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -89,6 +90,7 @@ class Businesses(db.Model):
             "name": self.business_name,
             "RIF": self.business_RIF,
             "CP": self.business_CP,
+            "google_connected": self.google_token is not None,
             "is_active": self.is_active,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),

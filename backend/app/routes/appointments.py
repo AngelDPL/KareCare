@@ -191,6 +191,17 @@ def create_appointment():
         )
         db.session.add(calendar_event)
         db.session.commit()
+        
+        try:
+            from app.routes.google_calendar import sync_appointment_to_google
+            google_event_id = sync_appointment_to_google(appointment)
+            if google_event_id:
+                calendar_event.google_event_id = google_event_id
+                calendar_event.last_sync = datetime.now()
+                db.session.commit()
+                print("Google Calendar sync OK:", google_event_id)
+        except Exception as e:
+            print("Google Calendar sync failed:", str(e))
 
         return (
             jsonify(
@@ -249,10 +260,15 @@ def update_appointment(appointment_id):
         if "status" in data:
             valid_statuses = ["pending", "confirmed", "cancelled", "completed"]
             if data["status"] not in valid_statuses:
-                return (
-                    jsonify({"error": f"Estado inválido. Debe ser: {valid_statuses}"}),
-                    400,
-                )
+                return jsonify({"error": f"Estado inválido. Debe ser: {valid_statuses}"}), 400
+            
+            if data["status"] == "cancelled" and appointment.calendar and appointment.calendar.google_event_id:
+                try:
+                    from app.routes.google_calendar import delete_google_event
+                    delete_google_event(appointment.business_id, appointment.calendar.google_event_id)
+                except Exception as e:
+                    print("Google Calendar delete failed:", str(e))
+            
             appointment.status = data["status"]
 
         db.session.commit()
